@@ -15,6 +15,8 @@ local HeroContextWrapper = ModRequire "../HeroContextWrapper.lua"
 local HookUtils = ModRequire "../HookUtils.lua"
 ---@type CoopModConfig
 local Config = ModRequire "../config.lua"
+---@type EnemyScaling
+local EnemyScaling = ModRequire "../EnemyScaling.lua"
 
 local _OnHit = OnHit
 function OnHit(args)
@@ -44,6 +46,10 @@ function OnHit(args)
             triggerArgs.DamageAmount = 10000
         end
 
+        if isVictimPlayer and not isAttackerPlayer then
+            EnemyScaling.ScaleDamageToPlayer(triggerArgs, attacker)
+        end
+
         if isAttackerPlayer then
             -- Save last attacker to run OnEffectApply with the right hero context
             victim.CoopLastAttackerId = attacker.ObjectId
@@ -60,8 +66,11 @@ function OnHit(args)
         if isVictimPlayer then
             if victim == CoopPlayers.GetMainHero() then
                 UpdateHealthUI()
-            elseif victim == CoopPlayers.GetHero(2) then
-                SecondPlayerUi.UpdateHealthUI()
+            else
+                local ui = SecondPlayerUi.ForHero(victim)
+                if ui then
+                    ui.UpdateHealthUI()
+                end
             end
         end
     end }

@@ -19,6 +19,28 @@ local Config = {
     RoomDuplicatedDelivery = {
         -- Enables duplication of the Chaos boons.
         DuplicateChaosBoon = false;
+        -- true: every door shows the rewards of all players (with P1/P2/P3 labels),
+        -- any player can enter a door and everybody goes there with their own reward.
+        -- false: players choose doors one by one.
+        SharedDoorChoice = true;
+    },
+    -- Enemy scaling by the number of players (like Seamless Coop).
+    -- Values are added for every additional alive player: 0.35 = +35%.
+    -- With 3 players: regular enemies 1 + 2 * 0.35 = 1.7x health, bosses 1 + 2 * 0.5 = 2x.
+    -- Health scaling also scales enemy armor.
+    EnemyScaling = {
+        Enabled = true,
+        HealthPerPlayer = 0.35,
+        BossHealthPerPlayer = 0.5,
+        -- Damage enemies deal to players
+        DamagePerPlayer = 0,
+        BossDamagePerPlayer = 0,
+    },
+    -- Parts of the player UI hidden while a boss health bar is shown.
+    -- Hud: health, ammo, wrath. Tray: boon tray.
+    -- The player 3 UI is at the top of the screen and covers the boss health bar.
+    HideUiDuringBoss = {
+        [3] = { Hud = false, Tray = true },
     },
     Player1HasOutline = true;
     Player1Outline = {
@@ -38,12 +60,22 @@ local Config = {
         Thickness = 2,
         Threshold = 0.6,
     };
-    TextAbovePlayersEnabled = false;
+    Player3HasOutline = true,
+    Player3Outline = {
+        R = 200,
+        G = 0,
+        B = 0,
+        Opacity = 0.6,
+        Thickness = 2,
+        Threshold = 0.6,
+    };
+    -- "P1/P2/P3" above players, colored like the player outline
+    TextAbovePlayersEnabled = true;
     TextAbovePlayersParams = {
         -- CreateTextBox params
         OffsetX = 0,
-        OffsetY = -150,
-        FontSize = 28,
+        OffsetY = -195,
+        FontSize = 72,
         Color = { 255, 255, 255, 255 },
         ShadowColor = { 0, 0, 0, 240 },
         ShadowOffset = { 0, 2 },

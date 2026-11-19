@@ -11,6 +11,16 @@ local CoopPlayers = ModRequire "CoopPlayers.lua"
 local SecondPlayerUi = ModRequire "SecondPlayerUI.lua"
 ---@type HeroContext
 local HeroContext = ModRequire "HeroContext.lua"
+---@type TraitTrays
+local TraitTrays = ModRequire "TraitTrays.lua"
+---@type AmmoHooks
+local AmmoHooks = ModRequire "hooks/AmmoHooks.lua"
+---@type EnemyScaling
+local EnemyScaling = ModRequire "EnemyScaling.lua"
+---@type FountainHooks
+local FountainHooks = ModRequire "hooks/FountainHooks.lua"
+---@type BossUiHooks
+local BossUiHooks = ModRequire "hooks/BossUiHooks.lua"
 ---@type CoopCamera
 local CoopCamera = ModRequire "CoopCamera.lua"
 ---@type FreezeHooks
@@ -59,6 +69,11 @@ local function TryInstalBasicHooks()
     RunHooks.InitHooks()
     MenuHooks.InitHooks()
     --PactDoorFix.InitHooks()
+    TraitTrays.InitHooks()
+    AmmoHooks.InitHooks()
+    EnemyScaling.InitHooks()
+    FountainHooks.InitHooks()
+    BossUiHooks.InitHooks()
     UIHooks.InitHooks()
     CoopPlayers.CoopInit()
     LootHooks.InitHooks()
@@ -83,8 +98,11 @@ OnAnyLoad {
                 end
                 CoopPlayers.SetMainHero(HeroContext.GetDefaultHero())
                 CoopPlayers.UpdateMainHero()
-                CoopPlayers.InitCoopUnit(2)
+                for playerId = 2, CoopPlayers.GetPlayersCount() do
+                    CoopPlayers.InitCoopUnit(playerId)
+                end
                 SecondPlayerUi.Refresh()
+                TraitTrays.Refresh()
             end)
         end
     end
