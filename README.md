@@ -1,18 +1,29 @@
+# Hades coop mod — 3 players
 
-# Hades coop mod
+Play Hades with friends! Local co-op for **up to 3 players** on one PC.
 
-Play Hades with a friend!
-This mod adds local cooperative multiplayer to Hades, allowing two players to fight through the Underworld together on the same PC.
+This is an unofficial fork of [TheNormalnij/HadesCoopMod](https://github.com/TheNormalnij/HadesCoopMod) (0.4.3)
+that adds a third player and several co-op improvements.
+The mod supports the **Steam** and **Epic Games Store** versions of the game.
 
-For online play: Use a streaming tool like [Parsec](https://parsec.app/) to share your game session with a remote friend.
+For online play use a streaming tool like [Parsec](https://parsec.app/)
+or [RemotePlayWhatever](https://github.com/m4dEngi/RemotePlayWhatever/releases).
 
-The mod supports the **Steam** and **Epic Games Store** versions of the gamme
+# Download
 
-**Warning**
+**[Latest release](https://github.com/Juminathel/HadesCoopMod/releases/latest)** — download `HadesCoop-*.zip`, no build needed.
 
-You need a gameplay to play this mod.
+# Install
 
-# Linux / Steam Deck (Proton)
+1. Copy the contents of the `x64` folder from the archive into `Hades/x64` (or `Hades/x64Vk` for Vulkan).
+2. Copy the `Content/Mods` folder into `Hades/Content/Mods`.
+   If an older version is installed, delete `Hades/Content/Mods/TN_CoopMod` first.
+3. Start the game and choose the co-op game mode in the main menu.
+
+Default controls: P1 — keyboard + mouse, P2 — gamepad 1, P3 — gamepad 2.
+Players can be reassigned in the controller selection menu.
+
+## Linux / Steam Deck (Proton)
 
 Set the game launch options in Steam (Hades -> Properties -> Launch Options):
 
@@ -24,23 +35,53 @@ WINEDLLOVERRIDES="xinput9_1_0=n,b;dbghelp=n,b;dbgcore=n,b" %command%
 - `dbghelp=n,b` is required: with the Wine builtin dbghelp, `HadesMainMenuApiLib.dll` crashes on startup
   with `EXCEPTION_ACCESS_VIOLATION` before the engine starts (no `Hades.log` is written).
 
-# Fork TODO (priority order)
+# What's new in this fork
+
+- **Third player**: own HUD (top right corner), boon tray, outline and `P3` label.
+- Boon trays and `P1` / `P2` / `P3` labels for every player.
+- **Shared door choice**: every door shows the rewards of all players; any player can enter a door
+  and everyone gets their own reward (different boon gods per player on the same door).
+- **Enemy scaling** by the number of alive players: +35% health per extra player, +50% for bosses.
+- Shared fountain heal.
+- During boss fights the player 3 boon tray is hidden so it doesn't cover the boss health bar.
+- Player 2 HUD fixes: death defiance icons, Stubborn Defiance in every room,
+  damage / heal flashes on the P2 health bar, keepsake crash.
+
+# Settings
+
+Edit `Hades/Content/Mods/TN_CoopMod/config.lua`:
+
+| Option | What it does |
+| --- | --- |
+| `LootDelivery` | `"RoomDuplicated"` — a reward for every player, `"Shared"` — one reward per room |
+| `RoomDuplicatedDelivery.SharedDoorChoice` | `true` — doors show rewards of all players, `false` — players choose doors one by one |
+| `RoomDuplicatedDelivery.DuplicateChaosBoon` | duplicate Chaos boons for every player |
+| `EnemyScaling` | enemy health / damage bonus per extra alive player (`Enabled = false` to turn off) |
+| `HideUiDuringBoss` | which parts of a player's UI are hidden while a boss health bar is shown |
+| `Player1Outline` ... `Player3Outline` | outline colors |
+| `TextAbovePlayersEnabled` | `P1` / `P2` / `P3` labels above players |
+
+# Development
+
+Notes on the 3-player engine work: [docs/THREE_PLAYERS.md](docs/THREE_PLAYERS.md).
+
+## Fork TODO (priority order)
 
 Fixes from commit `5e6e133` (P2 HUD, last stands, Stubborn Defiance) are syntax-checked
 but **not play-tested in a real co-op run yet**.
 
-## 1. Verify first
+### 1. Verify first
 - [ ] Play-test `5e6e133` in co-op: P2 death defiance icons, Stubborn Defiance for P2 in every room,
       damage / heal / death defiance flashes on the P2 health bar, no duplicated icons after a run (#59, #76, #91, #92).
 
-## 2. Possible crashes
+### 2. Possible crashes
 - [ ] `hooks/UIHooks.lua` `AddLastStand`: replaces global `CreateScreenObstacle` and `ScreenAnchors.LifePipIds`
       without protection. If vanilla `AddLastStand` errors or yields, they stay replaced (P1 HUD breaks for the rest of the session).
 - [ ] `hooks/UIHooks.lua` `EquipPlayerWeaponPresentation`: `WeaponData[weaponName].ActiveReloadTime` has no nil check.
 - [ ] `hooks/RunHooks.lua` `HandleGenericRoom`: `onPostFunctionOnce` on the room entrance function stays installed
       if that function is not called in the room, and fires in the next room at the wrong time.
 
-## 3. Gameplay bugs
+### 3. Gameplay bugs
 - [ ] #84 Centaur Heart sometimes doesn't heal. Not reproduced. Suspects:
       `GetHeroByUnit` returns nil -> context falls back to the default hero (P1 gets the heal);
       or two tagged hearts lie close and the player uses the other player's heart (silently ignored in `UseHooks.lua`).
@@ -50,16 +91,16 @@ but **not play-tested in a real co-op run yet**.
 - [ ] Low health bar pulse is disabled for P2 (it pulsed the P1 bar). Needs a P2 version for `SecondPlayerUI`.
 - [ ] P2 HUD presentation redirect (`UIHooks.RunWithSecondPlayerAnchors`) only covers code before the first `wait`.
 
-## 4. Cleanup
+### 4. Cleanup
 - [ ] `CoopPlayers.PlayerUnitIdToHero` keeps entries of removed P2 units after death.
 - [ ] `HookUtils.onPreFunction` / `onPostFunction` drop return values of the original function
       (no hooked function returns a value today, but it's a trap).
 - [ ] #18 gamepad doesn't work after a crash.
 - [ ] #71 Vulkan crash on startup: check whether it's the same dbghelp issue on Wine/Proton.
 
-# Build
+## Build
 
-## Using CMake for Windows x64
+### Using CMake for Windows x64
 
 ```powershell
 cmake -A x64 . -B build_msvc
@@ -68,13 +109,13 @@ cmake --build build_msvc --config Release
 
 Binary files are located in the `bin` folder.
 
-## Using [Visual Studio](https://visualstudio.microsoft.com/) GUI
+### Using [Visual Studio](https://visualstudio.microsoft.com/) GUI
 
 You need to install cmake in the Visual Studio Installer to build the project.
 Open the project in VS and click Build -> Build All in the top menu.
 Check `bin` folder for `HadesCoopGame.dll`.
 
-# How to load the mod from the repository folder
+## How to load the mod from the repository folder
 
 Follow these steps if you want to develop the mod and save changes in git:
 
@@ -94,6 +135,6 @@ ModRequire "dev/game/scripts/init.lua"
 ```
 5. Now you can make changes directly in the repository and load them in the game.
 
-# Suppoort
+# Support the original author
 
-You can support development using crypto. See [my page](https://thenormalnij.de/donate) for details
+You can support development of the original mod using crypto. See [my page](https://thenormalnij.de/donate) for details
